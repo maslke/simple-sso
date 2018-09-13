@@ -11,10 +11,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.springframework.util.StringUtils;
+
 public class LoginFilter implements Filter {
 
-    private final String ssoUrl = "";
+    private String ssoUrl;
     private FilterConfig filterConfig;
+
+    public String getSsoUrl() {
+        return this.ssoUrl;
+    }
+
+    public void setSsoUrl(String url) {
+        this.ssoUrl = url;
+    }
 
     @Override
     public void destroy() {
@@ -36,8 +46,24 @@ public class LoginFilter implements Filter {
             filterChain.doFilter(request, response);
             return;
         }
-        else {
-            response.sendRedirect(ssoUrl);
+        String requestUrl = request.getRequestURL().toString();
+        String token = request.getParameter("ticket");
+        if (StringUtils.isEmpty(token)) {
+            response.sendRedirect(ssoUrl + "?service=" + requestUrl);
         }
+        else {
+            if (isValidToken(ssoUrl, token)) {
+                session.setAttribute("isLogin", true);
+                filterChain.doFilter(servletRequest, servletResponse);
+            }
+            else {
+                response.sendRedirect(ssoUrl + "?service=" + requestUrl);
+            }
+        }
+
+    }
+
+    private boolean isValidToken(String validUrl, String token) {
+        return true;
     }
 }

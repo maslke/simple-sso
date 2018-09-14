@@ -31,6 +31,6 @@
     </dependencies>
 
     <build>
-        <finalName>simple-sso-client</finalName>
+        <finalName>sso-client</finalName>
     </build>
 </project>

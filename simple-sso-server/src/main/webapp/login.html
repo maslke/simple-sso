@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+<div>
+    <div><label>username:</label><input type="text" id="username"></div>
+    <div><label>password:</label><input type="password" id="password"></div>
+    <div>
+        <button id="btnLogin" type="button">Login</button>
+    </div>
+</div>
+<script>
+
+    function getQueryString(name) {
+        var href = window.location.href;
+        var parts = href.split('?');
+        if (parts.length === 1) return null;
+        var querys = parts[1].split('&');
+        for (var i = 0; i < querys.length; i++) {
+            var query = querys[i].split('=');
+            if (query[0] === name) {
+                return query[1];
+            }
+        }
+    }
+
+    $('#btnLogin').click(function () {
+            var username = $('#username').val();
+            var password = $('#password').val();
+            $.ajax({
+                url: 'login/doLogin',
+                type: 'post',
+                data: {
+                    userName: username,
+                    password: password
+                },
+                success: function (data) {
+                    if (data.ret === 'success') {
+                        var token = data.token;
+                        var service = getQueryString('service');
+                        if (service.indexOf('?') >= 0) {
+                            window.open(service + '&ticket=' + token);
+                        } else {
+                            window.open(service + '?ticket=' + token);
+                        }
+                    }
+
+                },
+                error: function () {
+                    console.log(arguments);
+                }
+            })
+        }
+    )
+</script>
+</body>
+</html>

@@ -1,4 +1,5 @@
-package com.maslke.demo.client;
+package com.maslke.demo.server;
+
 
 import java.io.IOException;
 import javax.servlet.Filter;
@@ -11,52 +12,34 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.springframework.util.StringUtils;
-
 public class LoginFilter implements Filter {
-
-    private String ssoUrl;
     private FilterConfig filterConfig;
-
-    @Override
-    public void destroy() {
-
-    }
-
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         this.filterConfig = filterConfig;
-        this.ssoUrl = filterConfig.getInitParameter("ssoUrl");
     }
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-
         HttpSession session = request.getSession(true);
-        if (session.getAttribute("isLogin") != null) {
-            filterChain.doFilter(request, response);
+        String uri = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        String service = uri.substring(contextPath.length());
+        if (service.equals("/login.html") || service.equals("/login/doLogin")) {
+            filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
-        String requestUrl = request.getRequestURL().toString();
-        String token = request.getParameter("ticket");
-        if (StringUtils.isEmpty(token)) {
-            response.sendRedirect(this.ssoUrl + "/login.html?service=" + requestUrl);
+        if (session.getAttribute("isLogin") != null) {
+            filterChain.doFilter(servletRequest, servletResponse);
+        } else {
+            response.sendRedirect("login.html");
         }
-        else {
-            if (isValidToken(this.ssoUrl, token)) {
-                session.setAttribute("isLogin", true);
-                filterChain.doFilter(servletRequest, servletResponse);
-            }
-            else {
-                response.sendRedirect(ssoUrl + "?service=" + requestUrl);
-            }
-        }
-
     }
 
-    private boolean isValidToken(String validUrl, String token) {
-        return true;
+    @Override
+    public void destroy() {
+
     }
 }
